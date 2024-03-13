@@ -31,7 +31,6 @@ public class Trapdoor {
             }
 
             packet.put("trapdoorPos", trapdoor.getPosition());
-
             return open;
         }
     }
