@@ -22,8 +22,8 @@ public class TankTeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            double l = Math.pow(gamepad1.left_stick_y, 3);
-            double r = Math.pow(gamepad1.right_stick_y, 3);
+            double l = -Math.pow(gamepad1.left_stick_y, 3);
+            double r = -Math.pow(gamepad1.right_stick_y, 3);
 
             left.forEach(m -> m.setPower(l));
             right.forEach(m -> m.setPower(r));
