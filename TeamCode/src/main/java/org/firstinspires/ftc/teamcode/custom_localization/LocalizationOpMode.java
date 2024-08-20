@@ -30,6 +30,10 @@ public class LocalizationOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
+            module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+        
         for (String motor : motorNames)
             motors.add(hardwareMap.get(DcMotorEx.class, motor));
 
