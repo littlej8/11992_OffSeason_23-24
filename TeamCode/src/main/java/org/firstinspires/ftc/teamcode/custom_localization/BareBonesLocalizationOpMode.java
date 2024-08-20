@@ -78,7 +78,7 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
             prevWheels[3] = wheels[3];
             prevHeading = heading;
 
-            double[] twist = new double[]{twistRobotX, twistRobotY};
+            double[] twist = new double[]{twistRobotX * STRAFE_MULT, twistRobotY};
             double halfTurn = twistRobotTheta / 2;
 
             double cos = Math.cos(halfTurn);
