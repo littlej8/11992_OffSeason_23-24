@@ -85,8 +85,8 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
             double sin = Math.sin(halfTurn);
             double[] fieldTwist = new double[]{twist[0] * cos - twist[1] * sin, twist[0] * sin + twist[1] * cos};
 
-            curPose[0] = fieldTwist[0];
-            curPose[1] = fieldTwist[1];
+            curPose[0] += fieldTwist[0];
+            curPose[1] += fieldTwist[1];
             curPose[2] = heading;
             
             telemetry.addData("Position", "(%.2f, %.2f)", curPose[0], curPose[1]);
