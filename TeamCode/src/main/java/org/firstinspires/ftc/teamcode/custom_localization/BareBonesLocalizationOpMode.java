@@ -79,11 +79,9 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
             prevHeading = heading;
 
             double[] twist = new double[]{twistRobotX * STRAFE_MULT, twistRobotY};
-            double halfTurn = twistRobotTheta / 2;
 
-            double cos = Math.cos(halfTurn);
-            double sin = Math.sin(halfTurn);
-            double[] fieldTwist = new double[]{twist[0] * cos - twist[1] * sin, twist[0] * sin + twist[1] * cos};
+            exp(curPose, twist);
+            curPose[2] = heading;
 
             curPose[0] += fieldTwist[0];
             curPose[1] += fieldTwist[1];
@@ -95,5 +93,44 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
             telemetry.addData("Angular Velocity", "%.1f", Math.toDegrees(twistRobotTheta));
             telemetry.update();
         }
+    }
+
+    public static void exp(double cur[], double[] twist) {
+        double dx = twist[0];
+        double dy = twist[1];
+        double dtheta = twist[2];
+
+        double sinTheta = Math.sin(dtheta);
+        double cosTheta = Math.cos(dtheta);
+
+        double s;
+        double c;
+        if (Math.abs(dtheta) < 1E-9) {
+            s = 1.0 - 1.0 / 6.0 * dtheta * dtheta;
+            c = 0.5 * dtheta;
+        } else {
+            s = sinTheta / dtheta;
+            c = (1 - cosTheta) / dtheta;
+        }
+
+        double sinHeading = Math.sin(cur[2]);
+        double cosHeading = Math.cos(cur[2]);
+        double magnitude = Math.hypot(cosHeading, sinHeading);
+        double sin = sinHeading / magnitude;
+        double cos = cosHeading / magnitude;
+        double rot = Math.atan2(sin, cos);
+
+        double[] transform = new double[]{
+                dx * s - dy * c,
+                dx * c + dy * s,
+                rot
+        };
+        
+        double curCos = Math.cos(cur[2]);
+        double curSin = Math.sin(cur[2]);
+        
+        cur[0] += transform[0] * cos - transform[1] * sin;
+        cur[1] += transform[0] * sin + transform[1] * cos;
+        cur[2] += transform[2];
     }
 }
