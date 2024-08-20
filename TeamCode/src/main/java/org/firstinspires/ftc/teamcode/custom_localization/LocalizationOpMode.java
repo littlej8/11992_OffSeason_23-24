@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.firstinspires.ftc.teamcode.custom_localization.dead_reckoning.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.custom_localization.dead_reckoning.Odometry;
