@@ -17,6 +17,7 @@ public class Odometry {
     private final double[] previousWheelPositions;
 
     private boolean useIMU = true;
+    private double strafe_mult = 1.0;
 
     public Odometry(
             MecanumKinematics kinematics,
@@ -34,6 +35,10 @@ public class Odometry {
 
     public void setUseIMU(boolean useIMU) {
         this.useIMU = useIMU;
+    }
+
+    public void setStrafeMult(double s) {
+        strafe_mult = s;
     }
 
     public void setPose(Pose pose) {
@@ -54,7 +59,7 @@ public class Odometry {
 
         Pose twist = kinematics.toTwist(previousWheelPositions, wheelPositions);
         twist.heading = angle.minus(previousAngle).getRadians();
-        velocityInches = new Pose(twist.position.x, twist.position.y, twist.heading);
+        velocityInches = new Pose(twist.position.x * strafe_mult, twist.position.y, twist.heading);
 
         Pose newPose = poseInches.exp(twist);
 
