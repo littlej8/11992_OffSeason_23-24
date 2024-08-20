@@ -69,6 +69,8 @@ public class LocalizationOpMode extends LinearOpMode {
         );
 
         while (!isStopRequested()) {
+            odometry.setStrafeMult(STRAFE_MULT);
+            
             wheelPositions[0] = motors.get(1).getCurrentPosition();
             wheelPositions[1] = motors.get(2).getCurrentPosition();
             wheelPositions[2] = motors.get(0).getCurrentPosition();
