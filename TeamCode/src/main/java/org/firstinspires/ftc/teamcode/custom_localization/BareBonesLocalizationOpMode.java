@@ -127,8 +127,8 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
         double curCos = Math.cos(cur[2]);
         double curSin = Math.sin(cur[2]);
         
-        cur[0] += transform[0] * cos - transform[1] * sin;
-        cur[1] += transform[0] * sin + transform[1] * cos;
+        cur[0] += transform[0] * curCos - transform[1] * curSin;
+        cur[1] += transform[0] * curSin + transform[1] * curCos;
         cur[2] += transform[2];
     }
 }
