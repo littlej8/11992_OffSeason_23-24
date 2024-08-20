@@ -18,7 +18,8 @@ public class MeepMeepTesting {
                 .setConstraints(160, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        Action initial = myBot.getDrive().actionBuilder(new Pose2d(14.2, -62, 0))
+        //myBot.setDriveTrainType(DriveTrainType.TANK);
+        /*Action initial = myBot.getDrive().actionBuilder(new Pose2d(14.2, -62, 0))
                 .splineToConstantHeading(new Vector2d(50, -30), 0)
                 .waitSeconds(1)
                 .lineToXConstantHeading(32)
@@ -40,9 +41,33 @@ public class MeepMeepTesting {
                 .lineToXConstantHeading(35, null, new ProfileAccelConstraint(-120, 120))
                 .splineToConstantHeading(new Vector2d(50, -30), 0)
                 .waitSeconds(1)
+                .build();*/
+
+        Action thing = myBot.getDrive().actionBuilder(new Pose2d(14.2, -62, 0))
+                .splineTo(new Vector2d(50, -30), 0)
+                .waitSeconds(1)
+                .lineToX(10)
+                .waitSeconds(1)
+                .splineTo(new Vector2d(40, -10.5), 0)
+                .lineToX(-60, null, new ProfileAccelConstraint(-120, 120))
+                .waitSeconds(1)
+                .lineToX(25, null, new ProfileAccelConstraint(-120, 120))
+                .splineTo(new Vector2d(50, -30), 0)
+                .waitSeconds(1)
                 .build();
 
-        SequentialAction program = new SequentialAction(initial, cycle, cycle);
+        Action cycle = myBot.getDrive().actionBuilder(new Pose2d(50, -30, 0))
+                .lineToX(49)
+                .splineTo(new Vector2d(25, -10.5), Math.PI)
+                .lineToX(-60, null, new ProfileAccelConstraint(-120, 120))
+                .waitSeconds(1)
+                .lineToX(25, null, new ProfileAccelConstraint(-120, 120))
+                .splineTo(new Vector2d(50, -30), 0)
+                .waitSeconds(1)
+                .build();
+
+        //SequentialAction program = new SequentialAction(initial, cycle, cycle);
+        SequentialAction program = new SequentialAction(thing, cycle, cycle);
 
         myBot.runAction(program);
 
