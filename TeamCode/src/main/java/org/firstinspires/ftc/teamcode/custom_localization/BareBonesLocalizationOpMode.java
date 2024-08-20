@@ -113,11 +113,9 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
             c = (1 - cosTheta) / dtheta;
         }
 
-        double sinHeading = Math.sin(cur[2]);
-        double cosHeading = Math.cos(cur[2]);
-        double magnitude = Math.hypot(cosHeading, sinHeading);
-        double sin = sinHeading / magnitude;
-        double cos = cosHeading / magnitude;
+        double magnitude = Math.hypot(cosTheta, sinTheta);
+        double sin = sinTheta / magnitude;
+        double cos = cosTheta / magnitude;
         double rot = Math.atan2(sin, cos);
 
         double[] transform = new double[]{
