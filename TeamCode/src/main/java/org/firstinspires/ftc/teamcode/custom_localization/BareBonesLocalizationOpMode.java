@@ -51,9 +51,9 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
         // 1: fr
         // 2: bl
         // 3: br
-        double[] prevWheels = new double[4]{0, 0, 0, 0}, wheels = new double[4]{0, 0, 0, 0};
+        double[] prevWheels = new double[]{0, 0, 0, 0}, wheels = new double[]{0, 0, 0, 0};
         double heading = 0, prevHeading = 0;
-        double[] curPose = new double[3]{0.0, 0.0, 0.0};
+        double[] curPose = new double[]{0.0, 0.0, 0.0};
 
         while (!isStopRequested()) {
             heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
@@ -78,7 +78,7 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
             prevWheels[3] = wheels[3];
             prevHeading = heading;
 
-            double[] twist = new double[2]{twistRobotX, twistRobotY};
+            double[] twist = new double[]{twistRobotX, twistRobotY};
             double halfTurn = twistRobotTheta / 2;
 
             double cos = Math.cos(halfTurn);
