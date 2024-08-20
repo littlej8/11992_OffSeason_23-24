@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.custom_localization;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -9,17 +8,13 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 
-import org.firstinspires.ftc.teamcode.custom_localization.util.Vector2D;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.teamcode.custom_localization.util.Pose;
-import org.firstinspires.ftc.teamcode.custom_localization.util.Rotation2d;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Config
 @TeleOp(name = "BareBonesLocalizationOpMode")
 public class BareBonesLocalizationOpMode extends LinearOpMode {
     String[] motorNames = new String[]{"Backleft", "Frontleft", "Frontright", "Backright"};
@@ -56,9 +51,9 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
         // 1: fr
         // 2: bl
         // 3: br
-        double[] prevWheels = new double[]{0, 0, 0, 0}, wheels = new double[];
+        double[] prevWheels = new double[4]{0, 0, 0, 0}, wheels = new double[4]{0, 0, 0, 0};
         double heading = 0, prevHeading = 0;
-        Pose curPose = new Pose(0.0, 0.0, 0.0);
+        double[] curPose = new double[3]{0.0, 0.0, 0.0};
 
         while (!isStopRequested()) {
             heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
@@ -83,15 +78,21 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
             prevWheels[3] = wheels[3];
             prevHeading = heading;
 
-            Pose twist = new Pose(twistRobotX, twistRobotY, twistRobotTheta);
-          
-            Pose curPose = odometry.getPose();
-            Pose curVel = odometry.getVelocity();
+            double[] twist = new double[2]{twistRobotX, twistRobotY};
+            double halfTurn = twistRobotTheta / 2;
 
-            telemetry.addData("Position", "(%.2f, %.2f)", curPose.position.x, curPose.position.y);
-            telemetry.addData("Heading", "%.1f", Math.toDegrees(curPose.heading));
-            telemetry.addData("Velocity", "(%.2f, %.2f)", curVel.position.x, curVel.position.y);
-            telemetry.addData("Angular Velocity", "%.1f", Math.toDegrees(curVel.heading));
+            double cos = Math.cos(halfTurn);
+            double sin = Math.sin(halfTurn);
+            double[] fieldTwist = new double[]{twist[0] * cos - twist[1] * sin, twist[0] * sin + twist[1] * cos};
+
+            curPose[0] = fieldTwist[0];
+            curPose[1] = fieldTwist[1];
+            curPose[2] = heading;
+            
+            telemetry.addData("Position", "(%.2f, %.2f)", curPose[0], curPose[1]);
+            telemetry.addData("Heading", "%.1f", Math.toDegrees(curPose[2]));
+            telemetry.addData("Velocity", "(%.2f, %.2f)", twist[0], twist[1]);
+            telemetry.addData("Angular Velocity", "%.1f", Math.toDegrees(twistRobotTheta));
             telemetry.update();
         }
     }
