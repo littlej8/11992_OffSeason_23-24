@@ -26,10 +26,12 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // bulk reading to improve loop times
         for (LynxModule module : hardwareMap.getAll(LynxModule.class)) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
+        // init motors
         for (String motor : motorNames)
             motors.add(hardwareMap.get(DcMotorEx.class, motor));
 
@@ -41,6 +43,7 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
         motors.get(1).setDirection(DcMotor.Direction.REVERSE);
         motors.get(2).setDirection(DcMotor.Direction.REVERSE);
 
+        // init imu
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
         RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
@@ -53,52 +56,72 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
         // 3: br
         double[] prevWheels = new double[]{0, 0, 0, 0}, wheels = new double[]{0, 0, 0, 0};
         double heading = 0, prevHeading = 0;
-        double[] curPose = new double[]{0.0, 0.0, 0.0};
+        double[] curPose = new double[]{0.0, 0.0, 0.0}; // (x, y, heading (angle))
+
+        boolean motorsMoving = false;
 
         while (!isStopRequested()) {
             heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            double x = gamepad1.left_stick_x;
-            double y = -gamepad1.left_stick_y;
-            double a = -gamepad1.right_stick_x;
+            double x = gamepad1.left_stick_x; // strafe
+            double y = -gamepad1.left_stick_y; // forward
+            double a = -gamepad1.right_stick_x; // turn
 
-            double x0 = x;
-            double y0 = y;
-            x = (Math.cos(-heading) * x0) - (Math.sin(-heading) * y0);
-            y = (Math.sin(-heading) * x0) + (Math.cos(-heading) * y0);
+            // only write to motors if there is significant input
+            if (Math.abs(x) > 0.25 || Math.abs(y) > 0.25 || Math.abs(a) > 0.25) {
+                motorsMoving = true;
 
-            double[] p = new double[4];
-            p[0] = -x + y - a;
-            p[1] = x + y - a;
-            p[2] = -x + y + a;
-            p[3] = x + y + a;
+                // rotate input vector to align with the field
+                double x0 = x;
+                double y0 = y;
+                x = (Math.cos(-heading) * x0) - (Math.sin(-heading) * y0);
+                y = (Math.sin(-heading) * x0) + (Math.cos(-heading) * y0);
 
-            double max = Math.max(1, Math.max(Math.abs(p[0]), Math.max(Math.abs(p[1]), Math.max(Math.abs(p[2]), Math.abs(p[3])))));
-            if (max > 1) for (int i = 0; i < 4; i++) p[i] /= max;
-            for (int i = 0; i < 4; i++) motors.get(i).setPower(p[i]);
+                // calculate wheel powers
+                double[] p = new double[4];
+                p[0] = -x + y - a;
+                p[1] = x + y - a;
+                p[2] = -x + y + a;
+                p[3] = x + y + a;
+
+                // keep motors below max power while sustaining the vector direction
+                double max = Math.max(1, Math.max(Math.abs(p[0]), Math.max(Math.abs(p[1]), Math.max(Math.abs(p[2]), Math.abs(p[3])))));
+                if (max > 1) for (int i = 0; i < 4; i++) p[i] /= max;
+                for (int i = 0; i < 4; i++) motors.get(i).setPower(p[i]);
+            } else if (motorsMoving) {
+                // set powers to 0 if less than significant input
+                
+                motorsMoving = false;
+                for (int i = 0; i < 4; i++) motors.get(i).setPower(0);
+            }
 
             wheels[0] = motors.get(1).getCurrentPosition();
             wheels[1] = motors.get(2).getCurrentPosition();
             wheels[2] = motors.get(0).getCurrentPosition();
             wheels[3] = motors.get(3).getCurrentPosition();
 
+            // get wheel deltas (changes) in inches
             double dfl = (wheels[0] - prevWheels[0]) * IN_PER_TICK;
             double dfr = (wheels[1] - prevWheels[1]) * IN_PER_TICK;
             double dbl = (wheels[2] - prevWheels[2]) * IN_PER_TICK;
             double dbr = (wheels[3] - prevWheels[3]) * IN_PER_TICK;
 
+            // forward kinematics to convert wheel deltas to robot deltas
             double twistRobotY = (dfl + dfr + dbl + dbr) / 4;
-            double twistRobotX = (dbl + dfr - dfl - dbr) / 4;
+            double twistRobotX = ((dbl + dfr - dfl - dbr) / 4) * STRAFE_MULT; // friction causes less movement in strafe
             double twistRobotTheta = heading - prevHeading;
 
+            // set previous values to compare to next loop
             prevWheels[0] = wheels[0];
             prevWheels[1] = wheels[1];
             prevWheels[2] = wheels[2];
             prevWheels[3] = wheels[3];
             prevHeading = heading;
 
-            double[] twist = new double[]{twistRobotX * STRAFE_MULT, twistRobotY, twistRobotTheta};
+            // combine into double array to pass to exp()
+            double[] twist = new double[]{twistRobotX, twistRobotY, twistRobotTheta};
 
+            // integrate the twist (change in pose) into the current estimate of pose
             exp(curPose, twist);
             curPose[2] = heading;
 
@@ -110,6 +133,7 @@ public class BareBonesLocalizationOpMode extends LinearOpMode {
         }
     }
 
+    // little bit of calculus to integrate with constant acceleration rather than velocity
     public static void exp(double[] cur, double[] twist) {
         double dx = twist[0];
         double dy = twist[1];
